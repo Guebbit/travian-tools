@@ -1,0 +1,40 @@
+{
+	"days": [
+		"Domenica",
+		"Lunedì",
+		"Martedì",
+		"Mercoledì",
+		"Giovedì",
+		"Venerdì",
+		"Sabato"
+	],
+	"months": [
+		"Gennaio",
+		"Febbraio",
+		"Marzo",
+		"Aprile",
+		"Maggio",
+		"Giugno",
+		"Luglio",
+		"Agosto",
+		"Settembre",
+		"Ottobre",
+		"Novembre",
+		"Dicembre"
+	],
+	"meta": {
+		"title": "Associazioni di Carpi",
+		"description": "Progetto Associazioni di Carpi",
+		"og": {
+			"og:image": "https://assets.guebbit.com/associazioni/images/castello-1-thumb800.jpg",
+			"og:image:alt": "",
+			"og:image:width": "800",
+			"og:image:height": "531",
+			"og:image:type": "image/jpg",
+			"twitter:image": "https://assets.guebbit.com/associazioni/images/castello-1-thumb800.jpg",
+			"twitter:title": "Associazioni di Carpi",
+			"twitter:description": "",
+			"twitter:card": "summary"
+		}
+	}
+}
