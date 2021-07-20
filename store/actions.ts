@@ -53,61 +53,46 @@ export default{
 				[ Xb, Yb ] = troopData.targetCityCoordinates,
 				distance :number = getDistance(mapSize, parseInt(Xa), parseInt(Xb), parseInt(Ya), parseInt(Yb)),
 				//siccome c'è sempre un lagg di qualche secondo, lo uso solo per ricavare il giorno e sostituisco l'ora con quella "esatta"
-				arrivalDatetime = getters.getSecureArrivalDatetime(troopData.arrivalTime, troopData.attackCountdown, troopData.startDatetime);
+				arrivalDatetime = getters.getSecureArrivalDatetime(troopData.arrivalTime, troopData.attackCountdown, troopData.spottedDatetime);
 		let troopArray = getters.getTroopTimes(distance),
 			troopTimes :troopTimesEvaluated[] = [],
 			i :number;
+
+
 		/*
+		var testTime = getters.calculateDistances(distance, 20, 3);
 		console.log(
 			"TESTTTTTTTTTT",
-			getters.calculateDistances(distance, 9, 3),
-			secondsToTime(getters.calculateDistances(distance, 9, 3)),
+			troopData.senderCityCoordinates,
+			troopData.targetCityCoordinates,
+			testTime,
+			secondsToTime(testTime),
+			"STARTTIME",
+			new Date(arrivalDatetime.getTime() - testTime*1000)
 		);
-		*/
+		return;
+		/**/
 
 		// --------- FILTRO ------------
 		//filtro via tutte le situazioni impossibili
-		troopArray = troopArray.filter(({ time } :troopTimes) => {
+		troopArray = troopArray.filter(({ time, arena, speed } :troopTimes) => {
 			const travelTime = time*1000,
-				missingTime = troopData.missingTime * 1000,
-				startTimestamp = troopData.startDatetime.getTime(),
-				arrivalTimestamp = arrivalDatetime.getTime();
-			//Per forza di cose non può arrivare dopo la data di arrivo
-			if(startTimestamp + travelTime > arrivalTimestamp)
-				return false;
-			//E non poteva partito quando ho osservato l'ultima volta e non c'era (qua dipende da quanto dichiara l'utente con missingTime)
-			if(
-				//l'attacco deve stare tra la data di inizio spottata (+ eventuale missing time)
-				startTimestamp - missingTime < travelTime &&
-				// e quella di arrivo
-				arrivalTimestamp < travelTime
-			)
-				return false;
-			// ora rimangono tutti gli attacchi che starebbero dentro questo lasso di tempo,
-			// ma devo ottenere solo quelli che sono partiti tra (startTimestamp - missingTime) e startTimestamp
-			// TODO semplificare?
-			/*
-			if(
-				// quando ho spottato l'attacco + il tempo AFK
-				startTimestamp - missingTime < arrivalTimestamp &&
-				// quando ho effettivamente spottato l'attacco
-				arrivalTimestamp < startTimestamp
-			)
-				return false;
-			*/
-			//console.log("ASD", missingTime, (arrivalTimestamp - startTimestamp - travelTime));
-			console.log("ASD", new Date(arrivalTimestamp - travelTime));
+				gapTime = troopData.gapTime * 1000,
+				spottedTimestamp = troopData.spottedDatetime.getTime(),
+				previousTimestamp = spottedTimestamp - gapTime,
+				arrivalTimestamp = arrivalDatetime.getTime(),
+				//tempo in cui l'attacco è sicuramente partito basato sul tempo di arrivo e sul tempo di percorrenza
+				startTimestamp = arrivalTimestamp - travelTime;
 
-			if((arrivalTimestamp - travelTime) > (startTimestamp - missingTime) && (arrivalTimestamp - travelTime) < startTimestamp)
+			//se la distanza è sotto i 20, conto solo le arene a 0 (che tanto le altre sarebbero tutte uguali)
+			if(distance <= 20 && arena > 0)
 				return false;
 
-			//if(travelTime > (startTimestamp - missingTime) && travelTime < startTimestamp)
-			//	return false;
-			console.log("DOPO", new Date(startTimestamp - missingTime));
-			console.log("PRIMA", troopData.startDatetime);
-			//TODO ordinare per timeDistance? Magari dentro troopTimesFiltered in attackDetailCard.vue
-			//console.log("timeDistance", (arrivalTimestamp - startTimestamp) - travelTime)
-			return true;
+			// Per forza di cose non può arrivare dopo la data di arrivo
+			if(previousTimestamp + travelTime > arrivalTimestamp)
+				return false;
+			// Prendo solo gli attacchi che sono partiti nel lasso di tempo tra le 2 volte che ho guardato la caserma
+			return startTimestamp >= (spottedTimestamp - gapTime) && startTimestamp <= spottedTimestamp;
 		});
 
 		// --------- CALCOLI FINALI ------------

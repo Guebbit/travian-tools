@@ -7,7 +7,7 @@
 	>
 		<div class="alert-header">
 			<h3>
-				<time :datetime="startDatetime">
+				<time :datetime="spottedDatetime">
 					<span class="text--disabled">{{ start[0] }}</span>
 					{{ start[1] }}
 				</time>
@@ -27,25 +27,28 @@
 		<div class="alert-body mt-5">
 
 			<div class="text-center mb-5">
-				({{ targetName }}) {{ targetCityLabel }}
+				<span>({{ senderName }}) {{ senderCityLabel }}</span>
 				<v-btn
 					class="ma-2"
 					outlined
 					color="yellow"
-					:href="'https://'+serverName+'/karte.php?x='+targetCityCoordinates[0]+'&y='+targetCityCoordinates[1]"
-				>
-					({{ targetCityCoordinates[0] + '|' + targetCityCoordinates[1] }})
-				</v-btn>
-
-				<v-icon class="mr-2 ml-2">mdi-arrow-right</v-icon>
-				({{ senderName }}) {{ senderCityLabel }}
-				<v-btn
-					class="ma-2"
-					outlined
-					color="yellow"
+					target="_blank"
 					:href="'https://'+serverName+'/karte.php?x='+senderCityCoordinates[0]+'&y='+senderCityCoordinates[1]"
 				>
 					({{ senderCityCoordinates[0] + '|' + senderCityCoordinates[1] }})
+				</v-btn>
+
+				<v-icon class="mr-2 ml-2">mdi-arrow-right</v-icon>
+
+				<span>({{ targetName }}) {{ targetCityLabel }}</span>
+				<v-btn
+					class="ma-2"
+					outlined
+					color="yellow"
+					target="_blank"
+					:href="'https://'+serverName+'/karte.php?x='+targetCityCoordinates[0]+'&y='+targetCityCoordinates[1]"
+				>
+					({{ targetCityCoordinates[0] + '|' + targetCityCoordinates[1] }})
 				</v-btn>
 			</div>
 
@@ -57,7 +60,7 @@
 			>
 				<v-avatar
 					left
-					:color="item.userRisk === 5 ? 'red' : item.userRisk > 4 ? 'yellow' : 'green'"
+					:color="item.userRisk === 5 ? 'red' : item.userRisk > 3 ? 'orange' : 'green'"
 				>
 					{{ item.arena }}
 				</v-avatar>
@@ -68,6 +71,8 @@
 				</v-avatar>
 				<time class="ml-2">{{ secondsToTime(item.time) }}</time>
 			</v-chip>
+
+			<pre v-if="debug">{{ troopTimes }}</pre>
 		</div>
 
 		<v-divider
@@ -155,7 +160,7 @@ const Component = Vue.extend({
 			}
 		} as PropOptions<string[]>,
 
-		startDatetime: {
+		spottedDatetime: {
 			type: Date,
 			default: () => {
 				return new Date();
@@ -183,6 +188,7 @@ const Component = Vue.extend({
 	},
 	computed: {
 		...mapState({
+			debug: (state :any) => state.debug,
 			serverName: (state :any) => state.serverData.serverName,
 		}),
 
@@ -199,7 +205,7 @@ const Component = Vue.extend({
 		},
 
 		start () :string[] {
-			return dayjs(this.startDatetime).format('DD/MM/YYYY HH:mm:ss').split(" ");
+			return dayjs(this.spottedDatetime).format('DD/MM/YYYY HH:mm:ss').split(" ");
 		},
 		arrival () :string[] {
 			return dayjs(this.arrivalDatetime).format('DD/MM/YYYY HH:mm:ss').split(" ");

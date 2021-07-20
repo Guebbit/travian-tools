@@ -39,13 +39,16 @@ export interface troopsElementMap {
 	arrivalTime: string
 }
 
-export interface troopsRawMap extends troopsElementMap {
-    id :string
-    targetName :string
-    targetCityLabel :string
-    targetCityCoordinates :[string, string] //TODO number, number (parseInt da NaN?)
-    startDatetime :Date
-	missingTime :number	//TODO TEMP trovare un nome migliore per i minuti AFK
+export interface basicDataElementMap {
+	targetName :string
+	targetCityLabel :string
+	targetCityCoordinates :[string, string] //TODO number, number (parseInt da NaN?)
+	spottedDatetime :Date	//da usare per trovare lo startDatetime
+}
+
+export type troopsRawMap = basicDataElementMap & troopsElementMap & {
+	id :string
+	gapTime :number	//TODO TEMP trovare un nome migliore per i minuti AFK
 }
 
 export interface troopsFinalMap extends troopsRawMap {
