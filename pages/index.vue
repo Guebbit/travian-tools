@@ -296,56 +296,6 @@ export default (Vue as VueConstructor<Vue & vueRefsMap>).extend({
 			this.setLoading(['items', false]);
 		})
 	},
-
-    mounted(){
-        /**/
-        this.calculateTroopsFinal(
-            {
-            "category": "inAttack",
-            "senderName": "The crazy",
-            "senderCityLabel": "00. Good Vibes",
-            "senderCityCoordinates": [
-              "5",
-              "-76"
-            ],
-            "arrivalTime": "07:11:15",
-            "attackCountdown": "11:37:00",
-            "spottedDatetime": new Date("2021-07-17T17:34:15.000Z"),
-            "targetName": "zxc",
-            "targetCityLabel": "01 Lions",
-            "targetCityCoordinates": [
-              "45",
-              "-29"
-            ],
-            "gapTime": 600,
-            "id": "g4f969f2-09a5-43dd-97d9-1b04b93ea665",
-            }
-        );
-        this.calculateTroopsFinal(
-            {
-              "category": "inAttack",
-              "senderName": "Avana9",
-              "senderCityLabel": "Kill Bill",
-              "senderCityCoordinates": [
-                "21",
-                "-35"
-              ],
-              "arrivalTime": "08:22:18",
-              "attackCountdown": "6:56:33",
-              "spottedDatetime": new Date("2021-07-18T23:27:45.000Z"),
-              "targetName": "zxc",
-              "targetCityLabel": "01 Lions",
-              "targetCityCoordinates": [
-                "45",
-                "-29"
-              ],
-              "gapTime": 600,
-              "id": "gb91e346-1c99-4628-b6e1-67d9f25f836b",
-              "arrivalDatetime": "2021-07-19T06:22:18.000Z",
-            }
-        );
-        /**/
-    },
 });
 </script>
 
