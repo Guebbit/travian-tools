@@ -12,7 +12,7 @@ export default () :stateMap => {
 		troopDetails: {},
 		serverData: {
 			serverName: 'ts2.travian.it',
-			mapSize: 201,	//+1?
+			mapSize: 401,	//+1?
 			speed: 1,
 			arenaCap: 20,
 		},
