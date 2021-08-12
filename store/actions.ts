@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
+import { debounce, cloneDeep } from 'lodash';
 import { getUUID } from 'guebbit-javascript-library';
-import { getDistance, secondsToTime } from '@/assets/js/temporary';
+import { getDistance } from '@/assets/js/temporary';
 
 import {
 	troopTimes,
@@ -10,16 +11,38 @@ import {
 	troopsFinalMap,
 } from '@/interfaces';
 
-//TODO nuxt $t in store?
-const $t = (text :string) => {
-	return text;
-};
-
 
 export default{
+	patchTroopDetails: async ({ commit, getters: { getTroopDetail } } :any, troopData :troopsFinalMap) :Promise<string> => {
+		console.log("PATCH", troopData);
+		// una vecchia copia nel caso qualcosa vada storto
+		const oldTroopData = cloneDeep(getTroopDetail(troopData.id));
+		//questo cambia reattivamente anche l'oggetto troopData (perché è solo una reference)
+		commit("setTroopsFinal", troopData);
 
-	addTroops: async ({ dispatch } :any, troopData: troopsElementMap ) :Promise<troopsRawMap[]> => {
-		return [];
+		console.log("XXX", process.env.apiUrl);return '';
+
+		return axios.put(process.env.API_URL + '/metodo/product/' + troopData.id, troopData)
+			.then((data :AxiosResponse<troopsFinalMap>) => {
+				console.log("OKKKKKKKKKKKKKKK", data)
+				//attackCountdown = 0; TODO rimuovere
+				return 'id';
+				//return data.id;
+			})
+			.catch((error :string) => {
+				console.log("ERRORRRRRRRRRRRRRRR", error)
+				//se qualcosa è andato storto, reverto
+				commit("setTroopsFinal", oldTroopData);
+				return oldTroopData.id;
+			});
+	},
+
+	storeTroopDetails: async ({ commit } :any, troopData :troopsFinalMap) :Promise<string> => {
+		console.log("STORE", troopData);
+		return 'ID';
+		//axios.post(process.env.API_URL + '/metodo/product', product)
+
+
 		/*
 		//TODO inserisco con ID fittizio, inserisco tale ID fittizio in un buffer, dopo di ché elimino(?) e RI-salvo i dati ma con il vero id? (per reattività)
 		return axios.post(process.env.apiUrl+'api/travian-tools', troopData)
@@ -31,8 +54,21 @@ export default{
 		*/
 	},
 
-	getTroopsFromServer: async ({ dispatch } :any) :Promise<troopsRawMap[]> => {
+
+	// getTroopsFromServer
+	getTroopDetails: async ({ commit, dispatch } :any, attack_id :string) :Promise<troopsRawMap | false> => {
+		console.log("GET", attack_id);
+		return false;
+		commit('setLoading', ['troops', true]);
+		//axios.get(rootState.navigation.companyApiUrl + '/metodo/product/' + attack_id)
+	},
+
+
+	fetchTroopDetails: async ({ commit, dispatch, getters: { getTroopsFromServer } } :any) :Promise<troopsRawMap[]> => {
+		console.log("GET ALL");
 		return [];
+		commit('setLoading', ['troops', true]);
+		//axios.get(rootState.navigation.companyApiUrl + '/metodo/product',
 		/*
 		return axios.get(process.env.apiUrl+'api/travian-tools').then(({ data } :AxiosResponse ) => {
 			for(let i :number = data.length; i--; )
@@ -42,57 +78,76 @@ export default{
 		*/
 	},
 
+	/**
+	*
+	*
+	**/
+	toggleTagAttack: async ({ getters: { getTroopDetail }, commit, dispatch } :any, [ attack_id, tag_id ] :[string, string]) :Promise<string> => {
+		const troopData = getTroopDetail(attack_id),
+			insertFlag = !troopData.activeTags.includes(tag_id);
+		//questo cambia reattivamente anche l'oggetto troopData (perché è solo una reference)
+		commit("toggleTagAttack", [attack_id, tag_id, insertFlag]);
+		return dispatch("patchTroopDetails", {
+			id: troopData.id,
+			activeTags: troopData.activeTags
+		}).catch(() => {
+			//se qualcosa è andato storto, reverto
+			commit("toggleTagAttack", [attack_id, tag_id, !insertFlag]);
+		});
+	},
+
+	/**
+	*
+	*
+	**/
+	setAttackNote: debounce(async ({ commit, dispatch, getters: { getTroopDetail } } :any, [attack_id, text] :[string, string]) => {
+		const { note :oldText } = getTroopDetail(attack_id);
+		//cambio il testo per reattività	TODO da fare dentro setTroopDetail (per ogni cambiamento)
+		commit("setAttackNote", [ attack_id, text ]);
+		return axios.put(process.env.API_URL + '/metodo/product/' + attack_id, text)
+			.catch(() => commit("setAttackNote", [ attack_id, oldText ]));
+	}, 500),
+	/**/
 
 
 
-	calculateTroopsFinal: ({ state: { serverData: { mapSize } }, getters, commit } :any, troopData :troopsRawMap | troopsFinalMap) :void => {
-		console.log("STARTTTTTTTTTTTTTTTTTTTT", troopData);
 
+
+
+
+
+
+	calculateTroopsFinal: ({ state: { serverData: { mapSize } }, getters, commit } :any, troopData :troopsRawMap) :void => {
 		// --------- CALCOLO DATI ------------
-		const 	[ Xa, Ya ] = troopData.senderCityCoordinates,
+		const 	id = getUUID(),
+				[ Xa, Ya ] = troopData.senderCityCoordinates,
 				[ Xb, Yb ] = troopData.targetCityCoordinates,
-				distance :number = getDistance(mapSize, parseInt(Xa), parseInt(Xb), parseInt(Ya), parseInt(Yb)),
-				//siccome c'è sempre un lagg di qualche secondo, lo uso solo per ricavare il giorno e sostituisco l'ora con quella "esatta"
-				arrivalDatetime = getters.getSecureArrivalDatetime(troopData.arrivalTime, troopData.attackCountdown, troopData.spottedDatetime);
+				distance :number = getDistance(mapSize, parseInt(Xa), parseInt(Xb), parseInt(Ya), parseInt(Yb));
 		let troopArray = getters.getTroopTimes(distance),
 			troopTimes :troopTimesEvaluated[] = [],
 			i :number;
 
-
-		/*
-		var testTime = getters.calculateDistances(distance, 20, 3);
-		console.log(
-			"TESTTTTTTTTTT",
-			troopData.senderCityCoordinates,
-			troopData.targetCityCoordinates,
-			testTime,
-			secondsToTime(testTime),
-			"STARTTIME",
-			new Date(arrivalDatetime.getTime() - testTime*1000)
-		);
-		return;
-		/**/
-
 		// --------- FILTRO ------------
 		//filtro via tutte le situazioni impossibili
-		troopArray = troopArray.filter(({ time, arena, speed } :troopTimes) => {
+		troopArray = troopArray.filter(({ time, arena, artifact, boots } :troopTimes) => {
 			const travelTime = time*1000,
-				gapTime = troopData.gapTime * 1000,
-				spottedTimestamp = troopData.spottedDatetime.getTime(),
-				previousTimestamp = spottedTimestamp - gapTime,
-				arrivalTimestamp = arrivalDatetime.getTime(),
+				gapSeconds = troopData.gapSeconds * 1000,
+				spottedTimestamp = new Date(troopData.spottedDate + " " + troopData.spottedTime).getTime(),
+				arrivalTimestamp = new Date(troopData.arrivalDate + " " + troopData.arrivalTime).getTime(),
+				previousTimestamp = spottedTimestamp - gapSeconds,
 				//tempo in cui l'attacco è sicuramente partito basato sul tempo di arrivo e sul tempo di percorrenza
 				startTimestamp = arrivalTimestamp - travelTime;
-
+			//matching artifact & boots
+			if(artifact !== troopData.artifact || boots !== troopData.boots)
+				return false;
 			//se la distanza è sotto i 20, conto solo le arene a 0 (che tanto le altre sarebbero tutte uguali)
 			if(distance <= 20 && arena > 0)
 				return false;
-
 			// Per forza di cose non può arrivare dopo la data di arrivo
 			if(previousTimestamp + travelTime > arrivalTimestamp)
 				return false;
 			// Prendo solo gli attacchi che sono partiti nel lasso di tempo tra le 2 volte che ho guardato la caserma
-			return startTimestamp >= (spottedTimestamp - gapTime) && startTimestamp <= spottedTimestamp;
+			return startTimestamp >= (spottedTimestamp - gapSeconds) && startTimestamp <= spottedTimestamp;
 		});
 
 		// --------- CALCOLI FINALI ------------
@@ -103,7 +158,6 @@ export default{
 			troopTimes.push({
 				...troopArray[i],
 				risk: risk,
-				userRisk: risk,
 			})
 		}
 
@@ -119,12 +173,10 @@ export default{
 			return;
 
 		// --------- CONFERMO I DATI ------------
+		commit("setTroopTimes", [id, troopTimes])
 		commit("setTroopsFinal", {
 			...troopData,
-			//TODO temporary loading ids
-			id: getUUID(),
-			arrivalDatetime,
-			troopTimes,
+			id,
 		} as troopsFinalMap);
 	},
 

@@ -2,34 +2,40 @@ import {
 	stateMap,
 	basicDataElementMap,
 	troopsElementMap,
+	troopsRawMap,
+	troopsFinalMap,
 	troopTimes,
 	troopDetailCategoryEnum,
 } from '@/interfaces';
 
+import dayjs from 'dayjs';
 import { timeToSeconds } from '@/assets/js/temporary';
-
-//TODO nuxt $t in store?
-const $t = (text :string) => {
-	return text;
-};
 
 export default {
 	// TODO items && Artifacts:
 	// http://travian.kirilloid.ru/distance.php
 	// http://travian.kirilloid.ru/js/distance.js?a
-	getTroopTimes: ({ gameData: { troopsData = [] } } :stateMap, { calculateDistances } :any) => (distance :number) :troopTimes[] => {
+	getTroopTimes: ({ gameData: { troopsData = [], bonusBoots = [], bonusArtifact = [] } } :stateMap, { calculateDistances } :any) => (distance :number) :troopTimes[] => {
 		let i :number,
 			arena :number,
+			b :number,
+			a :number,
 			distanceArray :troopTimes[] = [];
 		//truppe
 		for(i = troopsData.length; i--; )
 			//livelli arena
 			for(arena = 0; arena <= 20; arena++)
-				distanceArray.push({
-					speed: troopsData[i].speed,
-					time: calculateDistances(distance, arena, troopsData[i].speed),
-					arena,
-				});
+				//tutti i vari possibili stivali
+				for(b = bonusBoots.length; b--; )
+					// tutti i vari possibili artefatti
+					for(a = bonusArtifact.length; a--; )
+						distanceArray.push({
+							speed: troopsData[i].speed,
+							time: calculateDistances(distance, arena, (troopsData[i].speed * bonusArtifact[a] / 100), bonusBoots[b]),
+							arena,
+							artifact: bonusArtifact[a],
+							boots: bonusBoots[b],
+						});
 		return distanceArray;
 	},
 
@@ -81,7 +87,7 @@ export default {
 		return new Date(getStringDateFromDate(unstableDate) + " " + stableTime);
 	},
 
-	getTroopsFromLocal: (state: stateMap) => (element :HTMLTableElement ) :troopsElementMap | false => {
+	getTroopsFromLocal: ({ serverData: { language } }: stateMap, { serverTranslate } :any) => (element :HTMLTableElement) :troopsElementMap | false => {
 		// no classi = errore
 		if(!element.classList || element.classList.length < 2 || !element.classList[1])
 			return false;
@@ -97,7 +103,7 @@ export default {
 		// nome player mittente
 		if(element.querySelector('.troopHeadline > a:nth-child(2)')){
 			senderName = (element.querySelector('.troopHeadline > a:nth-child(2)')!.textContent || '');
-			senderName = senderName.split($t(' attacca '))[0];
+			senderName = senderName.split(serverTranslate[language][category])[0].trim();
 		}
 		// villo mittente
 		if(element.querySelector('.role'))
@@ -128,12 +134,18 @@ export default {
 		let targetName = '',
 			targetCityLabel = '',
 			targetCityCoordinates :[string, string] = ['0','0'],
+			spottedDate = '',
+			spottedTime = '',
 			spottedDatetime = new Date();
+
 
 		// --------- ESTRAZIONE DATI ------------
         //tempo spottato
         if(element.querySelector('#servertime .timer'))
             spottedDatetime = getSecureSpottedDatetime(element.querySelector('#servertime .timer'));
+		spottedDate = dayjs(spottedDatetime).format('YYYY-MM-DD');
+		spottedTime = dayjs(spottedDatetime).format('HH:mm:ss');
+
   		// nome player destinatario
   		if(element.querySelector('.playerName'))
   			targetName = (element.querySelector('.playerName')!.textContent || '');
@@ -151,7 +163,8 @@ export default {
 			targetName,
 			targetCityLabel,
 			targetCityCoordinates,
-			spottedDatetime,
+			spottedDate,
+			spottedTime,
 		};
 	},
 
@@ -165,4 +178,53 @@ export default {
 		return 0;
 	},
 
+
+	serverTranslate: () :Record<string, Record<troopDetailCategoryEnum, string>> => {
+		return {
+			it: {
+				inAttack: ' attacca ',
+				outAttack: ' attacca ',
+				inRaid: ' razzia ',
+				outRaid: ' razzia ',
+				inSupply: ' rinforza ',
+				outSupply: ' rinforza ',
+				inReturn: 'In ritorno ',
+			}
+		}
+	},
+
+
+
+
+
+	getTroopDetail: ({ troopDetails } :stateMap) => (attack_id :string) :troopsFinalMap | false => {
+		if(!troopDetails.hasOwnProperty(attack_id))
+			return false;
+		return troopDetails[attack_id];
+	},
+
+
+	factoryTroopDetail: () :troopsFinalMap => {
+		return {
+			category: troopDetailCategoryEnum.outAttack,
+			senderName: '',
+			senderCityLabel: '',
+			senderCityCoordinates: ['0','0'],
+			attackCountdown: '',
+			arrivalTime: '',
+			targetName: '',
+			targetCityLabel: '',
+			targetCityCoordinates: ['0','0'],
+			spottedDate: '',
+			spottedTime: '',
+			id: '',
+			arrivalDate: '',
+			gapSeconds: 0,
+			artifact: 0,
+			boots: 0,
+			note: '',
+			activeTags: [],
+			distance: 0,
+		}
+	}
 };

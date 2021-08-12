@@ -36,5 +36,43 @@
 			"twitter:description": "",
 			"twitter:card": "summary"
 		}
+	},
+	"troop-details": {
+		"modal-insert": {
+			"attack-sender-title": "Attaccante",
+			"attack-target-title": "Difensore",
+		    "attackCountdown": "mannagggg",
+		    "spottedDate": "Data presa visione",
+		    "spottedTime": "Orario presa visione",
+		    "arrivalDate": "Data arrivo",
+			"arrivalTime": "Orario arrivo",
+			"gapSeconds": "Ultima presa visione",
+			"activeTags": "Seleziona tags",
+			"note": "Note"
+		},
+		"tags-labels": {
+			"spotted-true-attack": "Attacco sicuro",
+			"spotted-fake-attack": "Fake sicuro",
+			"spotted-hero-change": "Eroe cambiato",
+			"no-troops-attack": "Player non ha truppe",
+			"defender-attack": "Player Defender"
+		}
+	},
+	"generic": {
+		"category": "Categoria",
+		"nickname": "Nickname",
+		"village": "Villaggio",
+		"note": "Note",
+		"artifact": "Artefatto",
+		"boots": "Stivali",
+		"attack-categories": {
+			"troop-detail-category-enum-label-inAttack": "Attacco",
+			"troop-detail-category-enum-label-outAttack": "Attacco",
+			"troop-detail-category-enum-label-inRaid": "Raid",
+			"troop-detail-category-enum-label-outRaid": "Raid",
+			"troop-detail-category-enum-label-inSupply": "Rinforzi",
+			"troop-detail-category-enum-label-outSupply": "Rinforzi",
+			"troop-detail-category-enum-label-inReturn": "Ritorno"
+		}
 	}
 }
