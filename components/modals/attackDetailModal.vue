@@ -147,6 +147,7 @@
 											plain
 											v-bind="attrs"
 											v-on="on"
+											@click="modalSpottedDate = true"
 										>
 											<v-icon>mdi-calendar</v-icon>
 										</v-btn>
@@ -235,6 +236,7 @@
 											plain
 											v-bind="attrs"
 											v-on="on"
+											@click="modalArrivalDate = true"
 										>
 											<v-icon>mdi-calendar</v-icon>
 										</v-btn>
@@ -400,6 +402,13 @@ import { cloneDeep } from 'lodash';
 import { secondsToTime } from '@/assets/js/temporary';
 import showStructureMixin from './mixins/defaultShowStructure';
 
+/*
+import {
+	LocaleMessages,
+} from 'vue-i18n';
+TODO?
+*/
+
 import {
     troopsFinalMap,
 	troopDetailCategoryEnum,
@@ -443,12 +452,12 @@ export default (Vue as VueConstructor<Vue & InstanceType<typeof showStructureMix
 		]),
 		modalTitle() :string {
 			if(!this.data.senderName || !this.data.targetName)
-				return this.$t('attack-modal-title-new');
+				return this.$t('attack-modal-title-new') as string;
 			return this.$t('attack-modal-title', {
 				sender: this.data.senderName,
 				target: this.data.targetName,
 				arrival: this.data.arrivalTime,
-			});
+			}) as string;
 		},
 		gapTime() :string {
 			let temp = secondsToTime(this.data.gapSeconds).split(":");

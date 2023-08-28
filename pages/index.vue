@@ -223,6 +223,7 @@ export default (Vue as VueConstructor<Vue & vueRefsMap>).extend({
             'getStringDateFromDate',
             'getTroopsFromLocal',
             'getBasicDataFromLocal',
+            'getSecureArrivalDatetime',
         ]),
 
         loadingPromise() :Promise<any> {
@@ -277,7 +278,7 @@ export default (Vue as VueConstructor<Vue & vueRefsMap>).extend({
         ]),
 
         casermaTranslate() :void {
-            let tempArray :troopsElementMap[] = [],
+            let tempArray :Record<string,unknown>[] = [],
                 i :number;
             if(!this.$refs.casermaRaw)
                 return;
